@@ -16,15 +16,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public User login(String email, String password) throws AuthenticationException {
         Optional<User> userFromDbOption = userService.findByEmail(email);
-        if (userFromDbOption.isEmpty()) {
-            throw new AuthenticationException("Can't authenticate user");
-        }
         User user = userFromDbOption.get();
         String hashPassword = HashUtil.hashPassword(password, user.getSalt());
         if (user.getPassword().equals(hashPassword)) {
             return user;
         }
-        throw new AuthenticationException("Password does not match");
+        throw new AuthenticationException("Can't authenticate user");
     }
 
     @Override
@@ -33,11 +30,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (userFromDbOption.isPresent()) {
             throw new RegistrationException("Already exists, try replacing it " + email);
         }
-        User user = userFromDbOption.get();
+        User user = new User();
         user.setEmail(email);
-        String hashPassword = HashUtil.hashPassword(password, user.getSalt());
-        user.setPassword(hashPassword);
-        return user;
+        user.setPassword(password);
+        return userService.add(user);
     }
 
 }
